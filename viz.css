@@ -1,0 +1,152 @@
+/* ============================================================================
+   starwars-viz-kit — viz.css
+   Reusable, build-step-free stylesheet for the Anthropic demo harnesses.
+   Extracted/generalized from HOLOCRON-9 (institutional-memory). All classes are
+   prefixed `vk-` so the kit can be dropped into any demo page without collisions.
+   Pairs with viz.js (the VizKit engine builds the DOM these styles target).
+   ========================================================================== */
+
+:root{
+  --vk-bg:#0a0e14; --vk-panel:#121823; --vk-edge:#1f2a3a;
+  --vk-ink:#e6edf3; --vk-dim:#8b9bb0;
+  --vk-ally:#39d98a; --vk-hostile:#ff5c5c; --vk-warn:#ffb454; --vk-accent:#5ab0ff;
+}
+
+/* ── root / reset (scoped to the kit container) ── */
+.vk-root *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--vk-edge) transparent}
+.vk-root ::-webkit-scrollbar{width:6px;height:6px}
+.vk-root ::-webkit-scrollbar-track{background:transparent}
+.vk-root ::-webkit-scrollbar-thumb{background:var(--vk-edge);border-radius:3px}
+.vk-root ::-webkit-scrollbar-thumb:hover{background:var(--vk-dim)}
+.vk-root{
+  position:relative;
+  background:radial-gradient(1200px 600px at 50% -10%,#15243a,var(--vk-bg));
+  color:var(--vk-ink);
+  font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+  padding:24px;min-height:100%;
+}
+.vk-root button{font:inherit;background:var(--vk-panel);color:var(--vk-ink);
+  border:1px solid var(--vk-edge);border-radius:8px;padding:9px 16px;cursor:pointer;transition:.15s}
+.vk-root button:hover:not(:disabled){border-color:var(--vk-accent);color:var(--vk-accent)}
+.vk-root button:disabled{opacity:.4;cursor:default}
+
+/* keep the live content above the idle starfield */
+.vk-root > *:not(.vk-idle){position:relative;z-index:1}
+
+/* ── header ── */
+.vk-header{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.vk-header h1{font-size:19px;margin:0;letter-spacing:.5px}
+.vk-sub{color:var(--vk-dim);font-size:13px;margin-bottom:18px}
+.vk-help-btn{background:transparent;color:var(--vk-dim);border:1px solid var(--vk-edge);
+  border-radius:50%;width:22px;height:22px;padding:0;cursor:pointer;
+  font:700 12px/1 ui-monospace,monospace;display:inline-flex;align-items:center;
+  justify-content:center;transition:.15s;flex-shrink:0}
+.vk-help-btn:hover{border-color:var(--vk-accent);color:var(--vk-accent)}
+
+/* ── help modal ── */
+.vk-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:24px}
+.vk-modal.open{display:flex}
+.vk-modal-box{background:var(--vk-panel);border:1px solid var(--vk-edge);border-radius:14px;
+  padding:28px 32px;max-width:560px;width:100%;position:relative;max-height:80vh;overflow:auto}
+.vk-modal-box h2{font-size:16px;margin:0 0 14px}
+.vk-modal-box p,.vk-modal-box li{color:var(--vk-dim);font-size:13px;line-height:1.75;margin:0 0 10px}
+.vk-modal-box ul{padding-left:18px;margin:0 0 10px}
+.vk-modal-box strong{color:var(--vk-ink)}
+.vk-modal-close{position:absolute;top:14px;right:16px;background:transparent;border:none;
+  color:var(--vk-dim);cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;transition:.15s}
+.vk-modal-close:hover{color:var(--vk-ink)}
+
+/* ── run buttons ── */
+.vk-runs{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.vk-run-btn{flex:1 1 220px;text-align:left}
+.vk-run-btn.ally{border-color:var(--vk-ally);color:var(--vk-ally)}
+.vk-run-btn.warn{border-color:var(--vk-warn);color:var(--vk-warn)}
+.vk-run-btn.accent{border-color:var(--vk-accent);color:var(--vk-accent)}
+.vk-run-btn.hostile{border-color:var(--vk-hostile);color:var(--vk-hostile)}
+
+/* ── controls bar ── */
+.vk-bar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.vk-track{position:relative;display:flex;background:var(--vk-bg);
+  border:1px solid var(--vk-edge);border-radius:20px;padding:3px;user-select:none}
+.vk-opt{padding:5px 0;width:72px;text-align:center;font-size:11px;letter-spacing:1px;
+  z-index:1;position:relative;transition:color .2s;font-weight:700;color:var(--vk-dim);cursor:pointer}
+.vk-opt.active{color:var(--vk-bg)}
+.vk-opt.disabled{opacity:.35;cursor:not-allowed}
+.vk-pill{position:absolute;top:3px;left:3px;width:72px;height:calc(100% - 6px);
+  background:var(--vk-accent);border-radius:16px;transition:left .25s ease;z-index:0;pointer-events:none}
+
+/* ── HUD ── */
+.vk-hud{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px}
+.vk-hud .vk-stat{display:flex;flex-direction:column;gap:1px;min-width:62px}
+.vk-hud .vk-stat .k{color:var(--vk-dim);text-transform:uppercase;letter-spacing:1px;font-size:9px}
+.vk-hud .vk-stat .v{font-size:14px;font-variant-numeric:tabular-nums;transition:color .3s;color:var(--vk-accent)}
+.vk-est{color:var(--vk-accent);font-size:9px;letter-spacing:.5px;
+  border:1px solid var(--vk-edge);border-radius:4px;padding:0 3px;margin-left:3px;vertical-align:middle}
+
+/* ── status / prompt ── */
+.vk-status{color:var(--vk-dim);font-size:12px;min-height:16px;margin-bottom:12px}
+.vk-status.live::before{content:"● ";color:var(--vk-ally)}
+.vk-promptwrap{background:var(--vk-panel);border:1px solid var(--vk-edge);border-radius:10px;
+  padding:8px 14px;margin-bottom:16px}
+.vk-promptwrap summary{color:var(--vk-dim);font-size:12px;cursor:pointer;user-select:none}
+.vk-prompt{margin:8px 0 2px;white-space:pre-wrap;font-size:12px;color:var(--vk-ink);
+  max-height:180px;overflow:auto}
+.vk-prompt:empty::before{content:"(sent when you start a run)";color:var(--vk-dim)}
+
+/* ── activity stream / answer ── */
+.vk-grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+.vk-col h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--vk-dim);margin:0 0 10px}
+.vk-stream{background:var(--vk-panel);border:1px solid var(--vk-edge);border-radius:10px;padding:12px;
+  height:62vh;overflow:auto}
+.vk-step{padding:6px 8px;border-left:2px solid var(--vk-edge);margin-bottom:6px;font-size:13px;
+  animation:vk-in .25s ease}
+.vk-step.tool{border-left-color:var(--vk-accent);color:var(--vk-accent)}
+.vk-step.ally{border-left-color:var(--vk-ally);color:var(--vk-ally)}
+.vk-step.stat{border-left-color:var(--vk-dim);color:var(--vk-dim)}
+.vk-step.warn{border-left-color:var(--vk-warn);color:var(--vk-warn)}
+.vk-step.err{border-left-color:var(--vk-hostile);color:var(--vk-hostile)}
+.vk-step.idle{border-left-color:var(--vk-edge);color:var(--vk-dim);opacity:.7;font-style:italic}
+@keyframes vk-in{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.vk-body{font-size:11px;color:#7fa6cf;background:#0d141f;border-radius:6px;
+  padding:5px 8px;margin:0 0 8px 10px;white-space:pre-wrap;max-height:90px;overflow:auto}
+.vk-answer{background:var(--vk-panel);border:1px solid var(--vk-edge);border-left:3px solid var(--vk-warn);
+  border-radius:10px;padding:14px;height:62vh;overflow:auto;white-space:pre-wrap;font-size:13px}
+.vk-answer:empty::before{content:attr(data-placeholder);color:var(--vk-dim)}
+.vk-answer.thinking::after{content:" ▍";color:var(--vk-accent);animation:vk-blink 1s steps(2) infinite}
+@keyframes vk-blink{50%{opacity:0}}
+.vk-flag{background:linear-gradient(90deg,rgba(255,92,92,.18),transparent);
+  border:1px solid var(--vk-hostile);border-radius:8px;padding:4px 10px;color:#ffd5d5;
+  font-size:12px;display:inline-block;margin-left:8px;animation:vk-flagpulse 1.4s ease-in-out 3}
+@keyframes vk-flagpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,92,92,0)}50%{box-shadow:0 0 12px 2px rgba(255,92,92,.5)}}
+
+/* ── snapshot panel (generic; demos render their own items) ── */
+.vk-snap{margin-top:16px}
+.vk-snap > h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--vk-dim);margin:0 0 10px}
+.vk-snap-item{background:var(--vk-panel);border:1px solid var(--vk-edge);border-left:3px solid var(--vk-ally);
+  border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.vk-snap-item .name{color:var(--vk-ally);font-weight:600;font-size:13px;margin-bottom:6px}
+.vk-snap-item pre{margin:0;white-space:pre-wrap;font-size:12px;color:var(--vk-dim);max-height:160px;overflow:auto}
+.vk-snap-item.warn{border-left-color:var(--vk-warn)}
+.vk-snap-item.hostile{border-left-color:var(--vk-hostile)}
+.vk-snap-item.hostile .name{color:var(--vk-hostile)}
+.vk-snap-item.warn .name{color:var(--vk-warn)}
+
+/* ── idle animation layer (Star Wars "no dead air") ──────────────────────────
+   A subtle drifting starfield canvas behind everything, plus a sweeping scan
+   line that activates during dead air, plus a chatter ticker (driven by viz.js).
+   ------------------------------------------------------------------------- */
+.vk-idle{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.vk-idle canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.55}
+.vk-sweep{position:absolute;top:0;left:-30%;width:30%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(90,176,255,.07),transparent);
+  opacity:0;transition:opacity .6s}
+.vk-idle.scanning .vk-sweep{opacity:1;animation:vk-sweep 3.6s linear infinite}
+@keyframes vk-sweep{from{left:-30%}to{left:100%}}
+.vk-chatter{position:absolute;left:0;right:0;bottom:8px;text-align:center;
+  font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--vk-dim);
+  opacity:0;transition:opacity .5s}
+.vk-idle.scanning .vk-chatter{opacity:.5}
+.vk-chatter::before{content:"◐ ";color:var(--vk-accent)}
+
+@media(max-width:720px){.vk-grid{grid-template-columns:1fr}}

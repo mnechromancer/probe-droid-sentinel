@@ -1,0 +1,170 @@
+[
+  {
+    "type": "status",
+    "text": "PROBE-DROID SENTINEL online — booting sensors"
+  },
+  {
+    "type": "prompt",
+    "title": "patrol",
+    "text": "[system]\nYou are the Imperial Probe-Droid Sentinel, an always-watching sensor and intel-fusion agent monitoring the Kuat sector. You will be given a contact log for one patrol cycle. For EACH contact, briefly reason about whether its sensor readings (mass, thermal signature) match its filed manifest.\n\nCall log_observation for traffic that checks out — sensor readings consistent with the declared cargo, even if the vessel is doing something merely unusual (off its normal route, outside its patrol box). Call flag_anomaly ONLY when the sensor data itself contradicts the manifest — a mass or thermal reading that doesn't match what was declared. Don't flag a contact just because it's surprising; flag it because the numbers don't add up.\n\nAfter triaging every contact, write a brief PATROL SUMMARY: what was routine, what you flagged (if anything) and why, and your recommendation.\n\n[contact log]\nCONTACT LOG — Kuat sector, patrol cycle 7-G\n\n1. Freighter \"Dawn Treader\" — filed route Kuat -> Corellia. Manifest: agricultural\n   equipment, 40 metric tons. Sensor mass reading: 42 tons. Thermal signature: cold,\n   consistent with inert cargo.\n\n2. Bulk hauler \"Ithorian Pride\" — filed route Kuat -> Bestine. Manifest: raw\n   durasteel, 120 tons. Sensor mass reading: 118 tons. Thermal signature: cold.\n\n3. Patrol cruiser 88-G — squawking a valid Imperial IFF transponder. Operating in\n   a contested lane outside its normal patrol box. Military vessel, no manifest.\n\n4. Passenger liner \"Corvette Runner\" — filed route Kuat -> Coruscant. 220\n   passengers manifested, boarding logs match. No cargo hold activity detected.\n\n5. Convoy \"KSE-4471\" — filed route Kuat -> Byss. Manifest: agricultural parts, 30\n   metric tons. Sensor mass reading: 71 tons. Thermal signature: elevated core\n   heat, consistent with active reactor shielding, not inert parts.\n\n6. Shuttle \"Whisper-9\" — filed route Kuat -> Kuat orbital yards, short hop.\n   Manifest: maintenance crew transfer. Sensor readings nominal for a light\n   shuttle.\n"
+  },
+  {
+    "type": "status",
+    "text": "◇ querying Claude… (turn 1)"
+  },
+  {
+    "type": "think",
+    "text": "I'm going through a manifest check on several vessels. The first four all check out as routine—thermal readings match declarations, manifests align with actual cargo, and even the patrol cruiser with its military IFF and off-route position doesn't trigger any red flags. Now I'm looking at the fifth vessel, KSE-4471, which declared 30 tons of cargo.\n\nBut the actual weight comes in at 71 tons, and the thermal signature shows elevated reactor shielding—completely inconsistent with what should be inert agricultural parts. That's a significant discrepancy and warrants a high-priority flag. The last shuttle, Whisper-9, appears nominal and routine."
+  },
+  {
+    "type": "tool",
+    "name": "log_observation",
+    "target": "Dawn Treader",
+    "body": "Mass reading 42t vs manifested 40t agricultural equipment — within normal tolerance, cold thermal signature consistent with inert cargo.",
+    "accent": "tool"
+  },
+  {
+    "type": "observation",
+    "text": "Dawn Treader — Mass reading 42t vs manifested 40t agricultural equipment — within normal tolerance, cold thermal signature consistent with inert cargo."
+  },
+  {
+    "type": "tool_result",
+    "text": "logged · routine"
+  },
+  {
+    "type": "tool",
+    "name": "log_observation",
+    "target": "Ithorian Pride",
+    "body": "Mass reading 118t vs manifested 120t raw durasteel — within tolerance, cold thermal signature matches inert bulk metal.",
+    "accent": "tool"
+  },
+  {
+    "type": "observation",
+    "text": "Ithorian Pride — Mass reading 118t vs manifested 120t raw durasteel — within tolerance, cold thermal signature matches inert bulk metal."
+  },
+  {
+    "type": "tool_result",
+    "text": "logged · routine"
+  },
+  {
+    "type": "tool",
+    "name": "log_observation",
+    "target": "Patrol cruiser 88-G",
+    "body": "Valid Imperial IFF transponder, military vessel with no cargo manifest to verify against; off normal patrol box is a routing anomaly, not a sensor/manifest contradiction.",
+    "accent": "tool"
+  },
+  {
+    "type": "observation",
+    "text": "Patrol cruiser 88-G — Valid Imperial IFF transponder, military vessel with no cargo manifest to verify against; off normal patrol box is a routing anomaly, not a sensor/manifest contradiction."
+  },
+  {
+    "type": "tool_result",
+    "text": "logged · routine"
+  },
+  {
+    "type": "tool",
+    "name": "log_observation",
+    "target": "Corvette Runner",
+    "body": "Passenger count and boarding logs match manifest; no unexplained cargo hold activity detected.",
+    "accent": "tool"
+  },
+  {
+    "type": "observation",
+    "text": "Corvette Runner — Passenger count and boarding logs match manifest; no unexplained cargo hold activity detected."
+  },
+  {
+    "type": "tool_result",
+    "text": "logged · routine"
+  },
+  {
+    "type": "tool",
+    "name": "log_observation",
+    "target": "Whisper-9",
+    "body": "Sensor readings nominal for a light shuttle on short maintenance-crew hop; consistent with manifest.",
+    "accent": "tool"
+  },
+  {
+    "type": "observation",
+    "text": "Whisper-9 — Sensor readings nominal for a light shuttle on short maintenance-crew hop; consistent with manifest."
+  },
+  {
+    "type": "tool_result",
+    "text": "logged · routine"
+  },
+  {
+    "type": "tool",
+    "name": "flag_anomaly",
+    "target": "Convoy KSE-4471",
+    "body": "Manifested as 30 metric tons of inert agricultural parts, but sensor mass reads 71 tons (more than double) with elevated core heat consistent with active reactor shielding — thermal and mass profile contradicts a cold, lightweight parts shipment.",
+    "accent": "hostile"
+  },
+  {
+    "type": "flag",
+    "text": "Convoy KSE-4471 — Manifested as 30 metric tons of inert agricultural parts, but sensor mass reads 71 tons (more than double) with elevated core heat consistent with active reactor shielding — thermal and mass profile contradicts a cold, lightweight parts shipment.",
+    "label": "HIGH THREAT FLAGGED"
+  },
+  {
+    "type": "tool_result",
+    "text": "flag raised · severity HIGH"
+  },
+  {
+    "type": "usage",
+    "input": 1565,
+    "output": 1034,
+    "cache_write": 0,
+    "cache_read": 0
+  },
+  {
+    "type": "status",
+    "text": "◇ querying Claude… (turn 2)"
+  },
+  {
+    "type": "answer",
+    "text": "**PATROL SUMMARY — Kuat Sector, Cycle 7-G**\n\n**Routine traffic (5 contacts logged, no action needed):**\n- *Dawn Treader* — mass reading within tolerance of manifest, cold thermal matches inert ag equipment.\n- *Ithorian Pride* — mass reading within tolerance, cold thermal matches durasteel bulk cargo.\n- *Patrol Cruiser 88-G* — valid Imperial IFF; operating outside its normal box is a routing oddity, not a sensor discrepancy, and it carries no cargo manifest to contradict.\n- *Corvette Runner* — passenger manifest and boarding logs confirmed, no anomalous cargo activity.\n- *Whisper-9* — nominal light-shuttle signature consistent with short maintenance-crew hop.\n\n**Flagged anomaly:**\n- **Convoy KSE-4471 (HIGH severity)** — Filed as 30 tons of inert agricultural parts, but sensors show 71 tons (more than double the declared mass) with elevated core heat consistent with an active, shielded reactor — not the cold signature expected of spare parts. This is a genuine manifest contradiction, not merely unusual behavior.\n\n**Recommendation:** Dispatch an interdiction/boarding team to intercept KSE-4471 before it clears the Byss lane. Verify cargo hold contents against manifest and check for a concealed reactor or power core. All other contacts require no further action this cycle."
+  },
+  {
+    "type": "usage",
+    "input": 2800,
+    "output": 506,
+    "cache_write": 0,
+    "cache_read": 0
+  },
+  {
+    "type": "snapshot",
+    "title": "THREAT BOARD",
+    "items": [
+      {
+        "name": "Dawn Treader",
+        "body": "Mass reading 42t vs manifested 40t agricultural equipment — within normal tolerance, cold thermal signature consistent with inert cargo."
+      },
+      {
+        "name": "Ithorian Pride",
+        "body": "Mass reading 118t vs manifested 120t raw durasteel — within tolerance, cold thermal signature matches inert bulk metal."
+      },
+      {
+        "name": "Patrol cruiser 88-G",
+        "body": "Valid Imperial IFF transponder, military vessel with no cargo manifest to verify against; off normal patrol box is a routing anomaly, not a sensor/manifest contradiction."
+      },
+      {
+        "name": "Corvette Runner",
+        "body": "Passenger count and boarding logs match manifest; no unexplained cargo hold activity detected."
+      },
+      {
+        "name": "Whisper-9",
+        "body": "Sensor readings nominal for a light shuttle on short maintenance-crew hop; consistent with manifest."
+      },
+      {
+        "name": "⚑ Convoy KSE-4471",
+        "accent": "hostile",
+        "body": "Manifested as 30 metric tons of inert agricultural parts, but sensor mass reads 71 tons (more than double) with elevated core heat consistent with active reactor shielding — thermal and mass profile contradicts a cold, lightweight parts shipment. Severity HIGH."
+      }
+    ]
+  },
+  {
+    "type": "status",
+    "text": "patrol complete — resuming passive watch"
+  },
+  {
+    "type": "done"
+  }
+]

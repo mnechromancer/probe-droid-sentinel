@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Probe-Droid Sentinel</title>
+<link rel="stylesheet" href="viz.css"/>
+<style>html,body{margin:0;min-height:100%;background:#0a0e14}#app{min-height:100vh}</style>
+</head>
+<body>
+<!-- Drop-in demo: the shared kit (viz.css + viz.js) plus this config. Live runs and
+     the committed replays/patrol.json go through the kit's one handleFrame render
+     path, so a frame looks identical whether it streamed live or replayed. -->
+<div id="app"></div>
+<script src="viz.js"></script>
+<script>
+  VizKit.mount(document.getElementById('app'), {
+    title: '◈ PROBE-DROID SENTINEL',
+    subtitle: 'always-watching · Kuat sector · Messages API + tool use + extended thinking',
+    streamLabel: 'Agent activity',
+    answerLabel: 'Patrol summary',
+    answerPlaceholder: 'the patrol summary streams here…',
+    help:
+      '<h2>◈ Probe-Droid Sentinel</h2>' +
+      '<p>An always-watching Imperial sensor agent. Each patrol cycle it ingests a ' +
+      'synthetic contact log, reasons about whether each contact\'s sensor readings ' +
+      'match its filed manifest, and calls <code>log_observation</code> for routine ' +
+      'traffic or <code>flag_anomaly</code> for genuine anomalies.</p>' +
+      '<ul>' +
+      '<li>Built on the Anthropic <strong>Messages API</strong> — streaming, tool use, ' +
+      'and adaptive extended thinking (surfaced live as the droid reasons).</li>' +
+      '<li><strong>Replay</strong> plays a committed capture of a real patrol run — no ' +
+      'backend, no key, runs as-is on GitHub Pages.</li>' +
+      '<li>The <strong>idle starfield</strong> fills any dead air between contacts.</li>' +
+      '</ul>' +
+      '<p style="font-size:11px;opacity:.5;margin:0">Part of the Anthropic Basecamp demo set — jamisonducey.com</p>',
+    runs: [{ id: 'patrol', label: '▶ Begin patrol', accent: 'accent' }],
+    pricing: { in: 3, out: 15 }, // Claude Sonnet 5 sticker price per 1M tokens
+    snapshot: { title: 'THREAT BOARD' },
+    frames: {
+      observation: (f, vk) => vk.step('stat', '👁 ' + f.text),
+      flag: (f, vk) => {
+        vk.step('err', '⚑ FLAG: ' + f.text);
+        vk.setFlag('⚠ ' + (f.label || 'ANOMALY FLAGGED'));
+      },
+    },
+    flagTest: (t) => (/THREAT|ANOMAL|FLAG/i.test(t) ? 'ANOMALY DETECTED' : null),
+    idle: {
+      enabled: true,
+      chatter: [
+        'scanning Kuat sector — no contacts',
+        'probe sensors nominal · standing by',
+        'cross-referencing manifests against sensor returns',
+        'monitoring imperial sub-space channels',
+        'holding position · passive watch',
+      ],
+    },
+    // live: { enabled: true, url: id => PROXY + '?run=' + id }, // BYOK, wired in a later pass
+  });
+</script>
+</body>
+</html>
