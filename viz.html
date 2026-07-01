@@ -13,6 +13,7 @@
      path, so a frame looks identical whether it streamed live or replayed. -->
 <div id="app"></div>
 <script src="viz.js"></script>
+<script src="sentinel_live.js"></script>
 <script>
   VizKit.mount(document.getElementById('app'), {
     title: '◈ PROBE-DROID SENTINEL',
@@ -31,6 +32,9 @@
       'and adaptive extended thinking (surfaced live as the droid reasons).</li>' +
       '<li><strong>Replay</strong> plays a committed capture of a real patrol run — no ' +
       'backend, no key, runs as-is on GitHub Pages.</li>' +
+      '<li><strong>Live</strong> runs a real patrol against your own Anthropic API key. ' +
+      'The key is sent per-request to a relay on jamisonducey.com and never stored — ' +
+      'see the kit README for details.</li>' +
       '<li>The <strong>idle starfield</strong> fills any dead air between contacts.</li>' +
       '</ul>' +
       '<p style="font-size:11px;opacity:.5;margin:0">Part of the Anthropic Basecamp demo set — jamisonducey.com</p>',
@@ -55,7 +59,11 @@
         'holding position · passive watch',
       ],
     },
-    // live: { enabled: true, url: id => PROXY + '?run=' + id }, // BYOK, wired in a later pass
+    live: {
+      enabled: true,
+      proxyUrl: 'https://jamisonducey.com/api/demo-relay',
+      driver: runPatrolLive, // sentinel_live.js — client-side port of sentinel_driver.py
+    },
   });
 </script>
 </body>

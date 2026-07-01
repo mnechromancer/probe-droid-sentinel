@@ -25,6 +25,14 @@
      {type:"heartbeat"}  {type:"done"}  {type:"error", text}
    Demo-specific frames (e.g. flag/observation/route/specialist/synthesis) are
    dispatched to config.frames[type](frame, vk).
+
+   Opt-in council mode (config.council = {enabled: true}) adds an N-column
+   layout for parallel-specialist demos. The kit owns the DOM construction
+   (vk.buildCouncil({question, specialists}), vk.appendSpecialist(id, text))
+   since config.frames handlers have no way to add columns to the grid on
+   their own; the frame dispatch itself still goes through config.frames
+   (e.g. frames.route calling vk.buildCouncil, frames.specialist calling
+   vk.appendSpecialist) — the render path stays single and generic.
    ========================================================================== */
 (function () {
   'use strict';
@@ -48,6 +56,7 @@
     const frames = config.frames || {};
     const idleCfg = Object.assign({ enabled: true, chatter: DEFAULT_CHATTER.slice() }, config.idle || {});
     const DEAD_MS = idleCfg.deadMs || 1100;
+    const councilCfg = Object.assign({ enabled: false }, config.council || {});
 
     // ── build the UI ─────────────────────────────────────────────────────────
     rootEl.classList.add('vk-root');
@@ -58,11 +67,13 @@
       <div class="vk-runs"></div>
       <div class="vk-bar">
         <div class="vk-track"><div class="vk-pill"></div><span class="vk-opt vk-replay active">REPLAY</span><span class="vk-opt vk-live">LIVE</span></div>
+        <input type="password" class="vk-key" placeholder="your Anthropic API key — sent per-request, never stored" autocomplete="off" spellcheck="false" style="display:none">
         <button class="vk-clear">clear</button>
       </div>
       <div class="vk-hud"></div>
       <div class="vk-status">idle — press a run button</div>
       <details class="vk-promptwrap" open><summary>▸ what the agent was asked</summary><pre class="vk-prompt"></pre></details>
+      <div class="vk-council" style="display:none"><div class="vk-council-q"></div><div class="vk-council-cols"></div></div>
       <div class="vk-grid">
         <div class="vk-col"><h2>${config.streamLabel || 'Agent activity'}</h2><div class="vk-stream"></div></div>
         <div class="vk-col"><h2>${config.answerLabel || 'Output'} <span class="vk-flag-holder"></span></h2><div class="vk-answer" data-placeholder="${config.answerPlaceholder || 'the response streams here…'}"></div></div>
@@ -84,10 +95,14 @@
       pill: rootEl.querySelector('.vk-pill'),
       optReplay: rootEl.querySelector('.vk-replay'),
       optLive: rootEl.querySelector('.vk-live'),
+      key: rootEl.querySelector('.vk-key'),
       clear: rootEl.querySelector('.vk-clear'),
       hud: rootEl.querySelector('.vk-hud'),
       status: rootEl.querySelector('.vk-status'),
       prompt: rootEl.querySelector('.vk-prompt'),
+      council: rootEl.querySelector('.vk-council'),
+      councilQ: rootEl.querySelector('.vk-council-q'),
+      councilCols: rootEl.querySelector('.vk-council-cols'),
       stream: rootEl.querySelector('.vk-stream'),
       answer: rootEl.querySelector('.vk-answer'),
       flag: rootEl.querySelector('.vk-flag-holder'),
@@ -109,7 +124,8 @@
     els.modal.onclick = (e) => { if (e.target === els.modal) els.modal.classList.remove('open'); };
 
     // ── state ─────────────────────────────────────────────────────────────────
-    let es = null;             // EventSource for live
+    let es = null;             // EventSource for legacy URL-based live
+    let liveAbort = null;      // AbortController for a driver-based live run
     let replayGen = 0;         // bumped per run to cancel in-flight replays
     let activeRun = null;
     let liveMode = false;
@@ -117,6 +133,7 @@
     let typer = null, briefShown = false;
     let hudTimer = null, hudT0 = 0;
     const hud = { tools: 0, inChars: 0, outChars: 0, real: null };
+    let councilBodies = {}, councilTypers = {};
 
     // ── HUD ─────────────────────────────────────────────────────────────────
     const HUD_FIELDS = ['Elapsed', 'Steps', 'Tokens'].concat(pricing ? ['Credits'] : []);
@@ -210,6 +227,42 @@
     }
     function setFlag(html) { els.flag.innerHTML = `<span class="vk-flag">${html}</span>`; }
 
+    // ── council mode (opt-in N-column layout for parallel-specialist demos) ───
+    function resetCouncil() {
+      Object.keys(councilTypers).forEach((k) => clearInterval(councilTypers[k]));
+      councilTypers = {}; councilBodies = {};
+      els.council.style.display = 'none';
+      els.councilQ.textContent = '';
+      els.councilCols.innerHTML = '';
+    }
+    function buildCouncil(payload) {
+      if (!councilCfg.enabled) return;
+      resetCouncil();
+      const specialists = (payload && payload.specialists) || [];
+      els.council.style.display = '';
+      els.councilQ.textContent = (payload && payload.question) || '';
+      specialists.forEach((s) => {
+        const col = el('div', 'vk-council-col' + (s.accent ? ' ' + s.accent : ''));
+        col.innerHTML = `<h3>${escapeHtml(s.label || s.id || '')}</h3>` +
+          `<div class="vk-council-body" data-placeholder="deliberating…"></div>`;
+        els.councilCols.appendChild(col);
+        councilBodies[s.id] = col.querySelector('.vk-council-body');
+      });
+      steps++; step('stat', '⚖ council convened — ' + specialists.length + ' specialists');
+    }
+    function appendSpecialist(id, text) {
+      const target = councilBodies[id];
+      if (!target) return;
+      text = text || '';
+      clearInterval(councilTypers[id]);
+      let i = 0; const stepN = 22;
+      councilTypers[id] = setInterval(() => {
+        target.textContent = text.slice(0, i); target.scrollTop = target.scrollHeight; i += stepN;
+        if (i >= text.length) { target.textContent = text; clearInterval(councilTypers[id]); delete councilTypers[id]; }
+      }, 14);
+      hud.outChars += text.length; renderHud();
+    }
+
     // ── snapshot panel (generic; demos may override config.snapshot.render) ────
     function renderSnapshot(payload) {
       const title = payload.title || (config.snapshot && config.snapshot.title) || 'Snapshot';
@@ -281,6 +334,28 @@
       }
     }
 
+    // ── live proxy transport (BYOK) ─────────────────────────────────────────────
+    // fetch (not EventSource) so a visitor's key can ride a header — EventSource
+    // is GET-only and can't carry one. The proxy answers one Messages API turn
+    // per call with the finished message ({content, usage, stop_reason}); the
+    // demo's own live.driver owns the agent loop (tool-use, fan-out) and calls
+    // this once per turn, same shape sentinel_driver.py/council_driver.py use
+    // server-side via stream.get_final_message().
+    async function callProxy(payload, key, signal) {
+      const res = await fetch(live.proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Anthropic-Key': key },
+        body: JSON.stringify(payload),
+        signal,
+      });
+      if (!res.ok) {
+        let msg = 'relay error ' + res.status;
+        try { const j = await res.json(); if (j && j.error) msg = j.error; } catch (e) { /* non-JSON error body */ }
+        throw new Error(msg);
+      }
+      return res.json();
+    }
+
     // ── static replay (Pages-native: plays committed JSON, no backend) ─────────
     async function replayStatic(runId, gen) {
       let data;
@@ -303,11 +378,35 @@
     // ── run / reset ────────────────────────────────────────────────────────────
     function run(runId) {
       if (es) { es.onerror = null; es.close(); es = null; }
+      if (liveAbort) { liveAbort.abort(); liveAbort = null; }
       replayGen++; const gen = replayGen;
       stopPulse(); stopHudTimer(); clearInterval(typer); typer = null; briefShown = false;
       els.stream.innerHTML = ''; els.answer.textContent = ''; els.answer.className = 'vk-answer';
       els.flag.innerHTML = ''; els.prompt.textContent = '';
-      resetHud();
+      resetHud(); resetCouncil();
+      if (liveMode && live.enabled && typeof live.driver === 'function') {
+        const key = (els.key.value || '').trim();
+        if (!key) {
+          step('err', '✖ enter your Anthropic API key to run live');
+          els.status.textContent = 'idle — key required for a live run';
+          els.status.className = 'vk-status';
+          return;
+        }
+        activeRun = runId;
+        els.status.textContent = 'running live — ' + runId + '…';
+        els.status.className = 'vk-status live';
+        setBusy(true); startPulse(); startHudTimer();
+        liveAbort = new AbortController();
+        const signal = liveAbort.signal;
+        Promise.resolve(live.driver({
+          runId, emit: handleFrame, apiKey: key, signal,
+          callProxy: (payload) => callProxy(payload, key, signal),
+        })).catch((err) => {
+          if (replayGen !== gen || signal.aborted) return;
+          handleFrame({ type: 'error', text: String((err && err.message) || err) });
+        });
+        return;
+      }
       activeRun = runId;
       els.status.textContent = (liveMode ? 'running live' : 'replaying') + ' — ' + runId + '…';
       els.status.className = 'vk-status live';
@@ -322,16 +421,19 @@
     }
     function reset() {
       if (es) { es.onerror = null; es.close(); es = null; }
+      if (liveAbort) { liveAbort.abort(); liveAbort = null; }
       replayGen++;
       stopPulse(); stopHudTimer(); clearInterval(typer); typer = null; briefShown = false;
       els.stream.innerHTML = ''; els.answer.textContent = ''; els.answer.className = 'vk-answer';
       els.prompt.textContent = ''; els.flag.innerHTML = '';
       els.snap.style.display = 'none'; els.snapBody.innerHTML = '';
       els.status.textContent = 'idle — press a run button'; els.status.className = 'vk-status';
-      setBusy(false); resetHud(); activeRun = null;
+      setBusy(false); resetHud(); resetCouncil(); activeRun = null;
+      els.key.value = '';
     }
     function finish(why) {
       if (es) { es.close(); es = null; }
+      if (liveAbort) { liveAbort = null; }
       stopPulse(); stopHudTimer(); setBusy(false);
       els.status.className = 'vk-status';
       els.status.textContent = 'finished (' + why + ')';
@@ -356,12 +458,14 @@
       liveMode = (m === 'live');
       els.optReplay.classList.toggle('active', !liveMode);
       els.optLive.classList.toggle('active', liveMode);
+      els.key.style.display = (liveMode && live.enabled) ? '' : 'none';
       syncPill();
     }
     els.optReplay.onclick = () => setMode('replay');
     els.optLive.onclick = () => setMode('live');
     if (!live.enabled) { els.optLive.classList.add('disabled'); els.optLive.title = 'live BYOK runs not enabled for this demo'; }
     els.clear.onclick = reset;
+    window.addEventListener('pagehide', () => { els.key.value = ''; });
     if (window.requestAnimationFrame) requestAnimationFrame(syncPill); else setTimeout(syncPill, 0);
     window.addEventListener('resize', syncPill);
 
@@ -388,9 +492,16 @@
     const vk = {
       els, config, run, reset, setMode, handleFrame,
       step, body, appendAnswer, setFlag, renderSnapshot,
+      buildCouncil, appendSpecialist,
       get hud() { return hud; }, renderHud,
       bumpSteps() { steps++; }, stopPulse, startPulse,
-      destroy() { clearInterval(idleInterval); stars.stop(); if (es) es.close(); window.removeEventListener('resize', syncPill); },
+      destroy() {
+        clearInterval(idleInterval); resetCouncil(); stars.stop();
+        if (es) es.close();
+        if (liveAbort) liveAbort.abort();
+        els.key.value = '';
+        window.removeEventListener('resize', syncPill);
+      },
     };
     return vk;
   }

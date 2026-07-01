@@ -75,6 +75,10 @@
 .vk-opt.disabled{opacity:.35;cursor:not-allowed}
 .vk-pill{position:absolute;top:3px;left:3px;width:72px;height:calc(100% - 6px);
   background:var(--vk-accent);border-radius:16px;transition:left .25s ease;z-index:0;pointer-events:none}
+.vk-key{font:inherit;font-size:12px;background:var(--vk-bg);color:var(--vk-ink);
+  border:1px solid var(--vk-edge);border-radius:8px;padding:8px 12px;flex:1 1 260px;min-width:180px}
+.vk-key:focus{outline:none;border-color:var(--vk-accent)}
+.vk-key::placeholder{color:var(--vk-dim)}
 
 /* ── HUD ── */
 .vk-hud{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px}
