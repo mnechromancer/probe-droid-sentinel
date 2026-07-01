@@ -94,11 +94,25 @@
   max-height:180px;overflow:auto}
 .vk-prompt:empty::before{content:"(sent when you start a run)";color:var(--vk-dim)}
 
+/* ── council mode (opt-in N-column layout for parallel-specialist demos) ── */
+.vk-council{margin-bottom:18px}
+.vk-council-q{color:var(--vk-dim);font-size:12px;margin-bottom:10px}
+.vk-council-q:not(:empty)::before{content:"◈ question before the council: ";color:var(--vk-accent)}
+.vk-council-cols{display:flex;flex-wrap:wrap;gap:14px}
+.vk-council-col{flex:1 1 220px;background:var(--vk-panel);border:1px solid var(--vk-edge);
+  border-left:3px solid var(--vk-accent);border-radius:10px;padding:12px;animation:vk-in .25s ease}
+.vk-council-col.ally{border-left-color:var(--vk-ally)}
+.vk-council-col.warn{border-left-color:var(--vk-warn)}
+.vk-council-col.hostile{border-left-color:var(--vk-hostile)}
+.vk-council-col h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--vk-dim);margin:0 0 8px}
+.vk-council-body{font-size:12px;white-space:pre-wrap;max-height:min(34vh,320px);overflow:auto}
+.vk-council-body:empty::before{content:attr(data-placeholder);color:var(--vk-dim);font-style:italic}
+
 /* ── activity stream / answer ── */
 .vk-grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
 .vk-col h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--vk-dim);margin:0 0 10px}
 .vk-stream{background:var(--vk-panel);border:1px solid var(--vk-edge);border-radius:10px;padding:12px;
-  height:62vh;overflow:auto}
+  height:min(62vh,560px);overflow:auto}
 .vk-step{padding:6px 8px;border-left:2px solid var(--vk-edge);margin-bottom:6px;font-size:13px;
   animation:vk-in .25s ease}
 .vk-step.tool{border-left-color:var(--vk-accent);color:var(--vk-accent)}
@@ -111,7 +125,7 @@
 .vk-body{font-size:11px;color:#7fa6cf;background:#0d141f;border-radius:6px;
   padding:5px 8px;margin:0 0 8px 10px;white-space:pre-wrap;max-height:90px;overflow:auto}
 .vk-answer{background:var(--vk-panel);border:1px solid var(--vk-edge);border-left:3px solid var(--vk-warn);
-  border-radius:10px;padding:14px;height:62vh;overflow:auto;white-space:pre-wrap;font-size:13px}
+  border-radius:10px;padding:14px;height:min(62vh,560px);overflow:auto;white-space:pre-wrap;font-size:13px}
 .vk-answer:empty::before{content:attr(data-placeholder);color:var(--vk-dim)}
 .vk-answer.thinking::after{content:" ▍";color:var(--vk-accent);animation:vk-blink 1s steps(2) infinite}
 @keyframes vk-blink{50%{opacity:0}}
